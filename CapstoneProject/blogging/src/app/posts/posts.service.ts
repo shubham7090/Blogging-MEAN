@@ -29,8 +29,9 @@ export class PostsService{
     getPostUpdateListener(){
         return this.postsUpdated.asObservable();
     }
-    getPost(id:string|null){
-        return{...this.posts.find(p=>p.id===id)};
+    getPost(id:string){
+        // return{...this.posts.find(p=>p.id===id)};
+        return this.http.get<{_id:string,title:string,content:string}>("http://localhost:3000/api/posts/"+id);
     }
     addPost(title:string,content:string){
         const post:Post={id:"null",title:title,content:content};
@@ -41,6 +42,12 @@ export class PostsService{
             this.posts.push(post);
             this.postsUpdated.next([...this.posts]);
         });
+    }
+    updatePost(id:string,title:string,content:string){
+        console.log(`id : ${id} title : ${title} content: ${content}`);
+        
+        const post:Post={id:id,title:title,content:content};
+        this.http.put("http://localhost:3000/api/posts/"+id,post).subscribe(res=>console.log(res));
     }
     deletePost(postId:string){
         this.http.delete('http://localhost:3000/api/posts/'+postId).subscribe(()=>{
