@@ -44,18 +44,23 @@ app.use((req,res,next)=>{
 app.post("/api/posts",checkAuth,multer({storage:storage}).single("image"),(req,res,next)=>{
     const url=req.protocol+"://"+req.get("host");
     let filename=typeof(req.file)==undefined?"":req.file?.filename;
-    console.log(req.file?.filename);
-
+    // console.log(req.file?.filename);
+    console.log(req.myUserData);
+    // console.log(req.myUserData.userId);
     const post=new Post({
         title:req.body.title,
         content:req.body.content,
-        imagePath:url+"/images/"+filename
+        imagePath:url+"/images/"+filename,
+        creator:req.myUserData.userId
     });
+
     post.save().then(createdPost=>{
+        console.log("Post Created"+createdPost);
         res.status(201).json({
             message:"Post added successfully",
             postId: createdPost._id,
-            imagePath:createdPost.imagePath
+            imagePath:createdPost.imagePath,
+            creator:req.myUserData.userId
         });
     });
     
@@ -73,10 +78,22 @@ app.put("/api/posts/:id",checkAuth, multer({storage:storage}).single("image"),(r
         title:req.body.title,
         content:req.body.content,
         imagePath:imagePath,
+        // creator:req.myUserData.userId
     });
-    Post.updateOne({_id:req.params.id},post).then(result=>{
+    console.log("reached here");
+    console.log(req);
+    Post.updateOne({_id:req.params.id,creator:req.myUserData.userId},{$set:{
+        title:req.body.title,
+        content:req.body.content,
+        imagePath:imagePath,
+        creator:req.myUserData.userId
+    }}).then(result=>{
         console.log(result);
-        res.status(200).json({message:"Update Successful!"});
+        if(result.modifiedCount>0){
+            res.status(200).json({message:"Update Successful!"});
+        }else{
+            res.status(401).json({message:"Update Not Authorized!"});
+        }
     });
 })
 
@@ -100,16 +117,18 @@ app.get("/api/posts/:id",(req,res,next)=>{
 });
 
 app.delete("/api/posts/:id",checkAuth,(req,res,next)=>{
-    console.log("delte function ke andar");
-    Post.deleteOne({_id:req.params.id}).then(result=>{
-        console.log(`here is id ${req.params.id}`);
-        console.log(result)
-        res.status(200).json({message:"Post deleted!"});
+    Post.deleteOne({_id:req.params.id,creator:req.myUserData.userId}).then(result=>{
+        if(result.deletedCount>0){
+            return res.status(200).json({message:"Deletion Successful!"});
+        }else{
+            return res.status(401).json({message:"Deletion Not Authorized!"});
+        }
+        // res.status(200).json({message:"Post deleted!"});
     });
 });
 
 //##################################################################
-//#########################Auth Request#############################
+//######################### Auth Request #############################
 //##################################################################
 app.post("/api/user/signup",(req,res,next)=>{
     bcrypt.hash(req.body.password,10).then(hash=>{
@@ -159,7 +178,8 @@ app.post("/api/user/login",(req,res,next)=>{
         console.log(res);
         res.status(200).json({
             message:"Auth Successful",
-            token:token
+            token:token,
+            userId: fetchedUser._id,
         })
     }).catch(err=>{
         console.log(err);
@@ -168,8 +188,5 @@ app.post("/api/user/login",(req,res,next)=>{
         })
     });
 });
-
-
-
 
 module.exports=app;

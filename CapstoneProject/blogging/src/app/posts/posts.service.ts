@@ -17,7 +17,8 @@ export class PostsService{
                     title:post.title,
                     content:post.content,
                     id:post._id,
-                    imagePath:post.imagePath
+                    imagePath:post.imagePath,
+                    creator:post.creator
                 }
             })
         }))
@@ -33,7 +34,7 @@ export class PostsService{
     }
     getPost(id:string){
         // return{...this.posts.find(p=>p.id===id)};
-        return this.http.get<{_id:string,title:string,content:string,imagePath:string}>("http://localhost:3000/api/posts/"+id);
+        return this.http.get<{_id:string,title:string,content:string,imagePath:string,creator:string}>("http://localhost:3000/api/posts/"+id);
     }
     addPost(title:string,content:string,image:File){
         // const post:Post={id:"null",title:title,content:content};
@@ -49,6 +50,7 @@ export class PostsService{
                 title:title,
                 content:content,
                 imagePath:responseData.imagePath,
+                creator:"",
             }
             this.posts.push(post);
             this.postsUpdated.next([...this.posts]);
@@ -63,13 +65,15 @@ export class PostsService{
             postData.append("title",title);
             postData.append("content",content);
             postData.append("image",image);
+            this.http.put("http://localhost:3000/api/posts/"+id,postData).subscribe(res=>console.log(res));
         }else{
-            const post:Post={id:id,title:title,content:content,imagePath:image};
+            const post:Post={id:id,title:title,content:content,imagePath:image,creator:""};
+            this.http.put("http://localhost:3000/api/posts/"+id,post).subscribe(res=>console.log(res));
         }
         console.log(`id : ${id} title : ${title} content: ${content}`);
         
         
-        this.http.put("http://localhost:3000/api/posts/"+id,postData).subscribe(res=>console.log(res));
+        
         this.router.navigate(["/"]);
     }
     deletePost(postId:string){

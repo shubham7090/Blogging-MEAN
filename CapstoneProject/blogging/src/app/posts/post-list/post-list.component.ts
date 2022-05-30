@@ -17,20 +17,24 @@ export class PostListComponent implements OnInit,OnDestroy{
     @Input() posts:Post[]=[]
     postsService:PostsService;
     userIsAuthenticated=false;
+    userId:string;
     private authStatusSub:Subscription;
     constructor(postsService:PostsService,private authService:AuthService){
         this.postsService=postsService;
         this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});
         this.authStatusSub=new Subscription();
+        this.userId="";
     }
     private postsSub:Subscription;
     ngOnInit(): void {
         // this.posts=this.postsService.getPosts();
         this.postsService.getPosts();
+        this.userId=this.authService.userId;
         this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});//3 arguments : next()->when new data is emitted,error()->error,complete()->no new data to be emitted
         this.userIsAuthenticated=this.authService.getIsAuth();
         this.authStatusSub=this.authService.getauthStatusLitsner().subscribe(isAuthenticated=>{
             this.userIsAuthenticated=isAuthenticated;
+            this.userId=this.authService.userId;
         });
     }
     onDelete(postId:string){

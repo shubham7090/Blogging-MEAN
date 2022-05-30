@@ -9,8 +9,10 @@ export class AuthService{
     private isAuthenticated=false;
     private token:string;
     private authStatusLitsner=new Subject<boolean>();
+    userId:string;
     constructor(private http:HttpClient,private router:Router){
         this.token="";
+        this.userId="";
     }
     getToken(){
         return this.token;
@@ -29,7 +31,8 @@ export class AuthService{
             number:number
         };
         this.http.post("http://localhost:3000/api/user/signup",authData).subscribe(res=>{
-            console.log(res)
+            console.log(res);
+            this.router.navigate(['/']);
         })
     }
 
@@ -40,11 +43,12 @@ export class AuthService{
             name:'',
             number:''
         };
-        this.http.post<{token:string}>("http://localhost:3000/api/user/login",authData).subscribe(res=>{
+        this.http.post<{token:string,userId:string}>("http://localhost:3000/api/user/login",authData).subscribe(res=>{
             this.token=res.token;
             if(this.token){
                 this.isAuthenticated=true;
                 this.authStatusLitsner.next(true);
+                this.userId=res.userId;
                 this.saveAuthData(this.token);
                 this.router.navigate(['/']);
             }
@@ -55,13 +59,13 @@ export class AuthService{
         if(!token){
             return;
         }
-
     }
     logout(){
         this.token="null";
         this.isAuthenticated=false;
         this.authStatusLitsner.next(false);
         this.clearAuthData();
+        this.userId="";
         this.router.navigate(['/']);
     }
     private saveAuthData(token:string){
