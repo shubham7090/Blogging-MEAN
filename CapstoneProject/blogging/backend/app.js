@@ -179,7 +179,9 @@ app.post("/api/user/login",(req,res,next)=>{
         res.status(200).json({
             message:"Auth Successful",
             token:token,
+            expiresIn:"7200", //2h in sec
             userId: fetchedUser._id,
+            userName:fetchedUser.name
         })
     }).catch(err=>{
         console.log(err);
