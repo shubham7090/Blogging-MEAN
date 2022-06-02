@@ -3,7 +3,10 @@
     <span class="spacer"></span>
     <ul>
         <li *ngIf="userIsAuthenticated">
-            <a mat-button routerLink="/create" routerLinkActive="mat-accent">{{userName}}</a>
+            <a mat-button [routerLink]='[":{{userId}}"]' routerLinkActive="mat-accent">{{userName}}</a>
+        </li>
+        <li *ngIf="userIsAuthenticated">
+            <a mat-button routerLink="/feedback"  routerLinkActive="mat-accent">Feedback</a>
         </li>
         <li *ngIf="userIsAuthenticated">
             <a mat-button routerLink="/create" routerLinkActive="mat-accent">New Post</a>

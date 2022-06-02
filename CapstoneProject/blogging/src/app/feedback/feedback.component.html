@@ -1,0 +1,25 @@
+<mat-card *ngIf="isUser">
+    <form (submit)="onFeedbackSubmit(FeedbackForm)" #FeedbackForm="ngForm" > 
+        <mat-form-field>
+            <input matInput type="number" placeholder="Rating" name="rating" ngModel #ratingInput="ngModel" required>
+            <mat-error *ngIf="ratingInput.invalid">Please enter a Rating</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+            <textarea matInput name="content" cols="30" rows="10" placeholder="Please elaborate" name="content" ngModel #contentInput="ngModel"></textarea>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit">Submit Feedback</button>
+    </form>
+</mat-card>
+
+<div *ngIf="!isUser">
+    <div *ngFor="let feedback of feedbacks">
+        <mat-card>
+            <mat-card-title> {{feedback.rating}}</mat-card-title>
+            <mat-card-subtitle> {{feedback.content}}</mat-card-subtitle>
+        </mat-card>
+        <br>
+    </div>
+</div>
+<hr>

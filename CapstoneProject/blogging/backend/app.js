@@ -28,6 +28,7 @@ mongoose.connect("mongodb+srv://shubham7090:shubham7090@cluster0.kij19.mongodb.n
 
 const Post=require('./models/post');
 const user = require("./models/user");
+const Feedback = require("./models/feedback");
 app.use(bodyParser.json());
 // app.use(bodyParser.urlencoded({extended:false}));
 app.use('/images',express.static(path.join("backend/images")));
@@ -99,6 +100,15 @@ app.put("/api/posts/:id",checkAuth, multer({storage:storage}).single("image"),(r
 
 app.get('/api/posts',(req,res,next)=>{
     Post.find().then(documents=>{
+        res.status(200).json({
+            message:"Posts fetched successfully",
+            posts: documents
+        });
+    });
+   
+});
+app.get('/api/posts/user/:id',checkAuth,(req,res,next)=>{
+    Post.find({creator:req.myUserData.userId}).then(documents=>{
         res.status(200).json({
             message:"Posts fetched successfully",
             posts: documents
@@ -181,7 +191,8 @@ app.post("/api/user/login",(req,res,next)=>{
             token:token,
             expiresIn:"7200", //2h in sec
             userId: fetchedUser._id,
-            userName:fetchedUser.name
+            userName:fetchedUser.name,
+            email:fetchedUser.email
         })
     }).catch(err=>{
         console.log(err);
@@ -189,6 +200,35 @@ app.post("/api/user/login",(req,res,next)=>{
             message:"Auth failed 3"
         })
     });
+});
+
+//##################################################################
+//#########################Feedback REQUEST#############################
+//##################################################################
+
+app.post("/api/feedback",checkAuth,(req,res,next)=>{
+    console.log(req.myUserData);
+    // console.log(req.myUserData.userId);
+    const feedbackData=new Feedback({
+        rating:req.body.rating,
+        content:req.body.content,
+        author:req.myUserData.userId
+    });
+
+    feedbackData.save().then(result=>{
+        console.log("Feedback Created"+feedbackData);
+        res.status(201).json({
+            message:"Feedback added successfully",
+        });
+    });
+})
+app.get('/api/feedbacks',(req,res,next)=>{
+    Feedback.find().then(documents=>{
+        res.status(200).json({
+            feedbacks: documents
+        });
+    });
+   
 });
 
 module.exports=app;

@@ -1,4 +1,5 @@
 import { Component,Input, OnDestroy, OnInit } from "@angular/core";
+import { ActivatedRoute, ParamMap } from "@angular/router";
 import { Subscription } from "rxjs";
 import { AuthService } from "src/app/auth/auth.service";
 import {Post} from '../post.model';
@@ -19,7 +20,7 @@ export class PostListComponent implements OnInit,OnDestroy{
     userIsAuthenticated=false;
     userId:string;
     private authStatusSub:Subscription;
-    constructor(postsService:PostsService,private authService:AuthService){
+    constructor(postsService:PostsService,private authService:AuthService,private route:ActivatedRoute){
         this.postsService=postsService;
         this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});
         this.authStatusSub=new Subscription();
@@ -29,13 +30,29 @@ export class PostListComponent implements OnInit,OnDestroy{
     ngOnInit(): void {
         // this.posts=this.postsService.getPosts();
         
-        this.postsService.getPosts();
-        this.userId=this.authService.userId;
-        this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});//3 arguments : next()->when new data is emitted,error()->error,complete()->no new data to be emitted
-        this.userIsAuthenticated=this.authService.getIsAuth();
-        this.authStatusSub=this.authService.getauthStatusLitsner().subscribe(isAuthenticated=>{
-            this.userIsAuthenticated=isAuthenticated;
-            this.userId=this.authService.userId;
+        this.route.paramMap.subscribe((paramMap:ParamMap)=>{
+            if(paramMap.has('userId')){
+                const userId1=paramMap.get('userId')||"";
+                this.postsService.getPostsUserId(userId1);
+                this.userId=this.authService.userId;
+                console.log(this.userId);
+                
+                this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});//3 arguments : next()->when new data is emitted,error()->error,complete()->no new data to be emitted
+                this.userIsAuthenticated=this.authService.getIsAuth();
+                this.authStatusSub=this.authService.getauthStatusLitsner().subscribe(isAuthenticated=>{
+                    this.userIsAuthenticated=isAuthenticated;
+                    this.userId=this.authService.userId;
+                });
+            }else{
+                this.postsService.getPosts();
+                this.userId=this.authService.userId;
+                this.postsSub=this.postsService.getPostUpdateListener().subscribe((posts:Post[])=>{this.posts=posts});//3 arguments : next()->when new data is emitted,error()->error,complete()->no new data to be emitted
+                this.userIsAuthenticated=this.authService.getIsAuth();
+                this.authStatusSub=this.authService.getauthStatusLitsner().subscribe(isAuthenticated=>{
+                    this.userIsAuthenticated=isAuthenticated;
+                    this.userId=this.authService.userId;
+                });
+            }
         });
     }
     onDelete(postId:string){

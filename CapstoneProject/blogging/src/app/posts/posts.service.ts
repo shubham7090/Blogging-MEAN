@@ -36,6 +36,24 @@ export class PostsService{
         // return{...this.posts.find(p=>p.id===id)};
         return this.http.get<{_id:string,title:string,content:string,imagePath:string,creator:string}>("http://localhost:3000/api/posts/"+id);
     }
+    getPostsUserId(id:string){
+        this.http.get<{message:string,posts:any[]}>('http://localhost:3000/api/posts/user/'+id).pipe(map((postData)=>{
+            return postData.posts.map(post=>{
+                return {
+                    title:post.title,
+                    content:post.content,
+                    id:post._id,
+                    imagePath:post.imagePath,
+                    creator:post.creator
+                }
+            })
+        }))
+        .subscribe((transformedPosts)=>{
+            this.posts=transformedPosts;
+            this.postsUpdated.next([...this.posts]);
+        });
+
+    }
     addPost(title:string,content:string,image:File){
         // const post:Post={id:"null",title:title,content:content};
         const postData=new FormData();
